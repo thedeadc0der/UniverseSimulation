@@ -1,58 +1,44 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include "Gene.h"
 
+#include "Gene.hpp"
 
-//Sorter
-void Gene::sortAlleles() {
-	if(alleles[0] < alleles[1]) {
-		int a = alleles[0];
-		alleles[0] = alleles[1];
-		alleles[1] = a;
-	}
+#include <algorithm>
+#include <utility>
+#include <cstdlib>
+#include <cassert>
+
+Gene::Gene(){
+	id = 0;
+	std::fill_n(alleles_, 2, 0);
 }
 
-int Gene::speaking() {
-	//sortAlleles();
-	return alleles[0];
+void Gene::setAlleles(int left, int right){
+	if( left < right )
+		std::swap(left, right);
+	
+	alleles_[0] = left;
+	alleles_[1] = right;
 }
 
-//Printer
-void Gene::printAlleles() {
-	printf("Alleles : %d et %d\n", alleleL(), alleleR());
+void Gene::sortAlleles(){
+	if( alleles_[0] < alleles_[1] )
+		std::swap(alleles_[0], alleles_[1]);
 }
 
-//Getter
-int Gene::alleleL(){
-	return alleles[0];
+Gene Gene::createByCombining(Gene a, Gene b){
+	// First a little sanity check: make sure the genes we're trying to
+	// combine are the same type.
+	assert(a.id == b.id);
+	
+	// Create the new gene
+	Gene result;
+	result.id = a.id;
+	result.type = a.type;
+	
+	// Decide at random which allele we take from each parent
+	int alleleFromA, alleleFromB;
+	alleleFromA = rand() % 2;
+	alleleFromB = rand() % 2;
+	result.setAlleles(a.alleles_[alleleFromA], b.alleles_[alleleFromB]);
+	
+	return result;
 }
-int Gene::alleleR(){
-	return alleles[1];
-}
-
-//Setter
-void Gene::setAlleleL(int a) {
-	alleles[0] = a;
-}
-void Gene::setAlleleR(int a) {
-	alleles[1] = a;
-}
-void Gene::setType(int a) {
-	type_id = a;
-}
-
-//Class Methods
-int Gene::createFromParents(int geneM[2], int geneF[2]){
-	int u,v;
-
-	u = rand() % 2; //a random number
-	v = rand() % 2; //another random number
-
-	alleles[0] = geneM[u]; //give random between left and right of mother to its genome
-	alleles[1] = geneF[v]; //give random between .. of father ..
-	sortAlleles(); //sortAlleles
-	return speaking(); //return the speaking
-}
-
-//Gene::Gene() {}

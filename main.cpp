@@ -1,74 +1,62 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <jansson.h>
-#include <time.h>
 
-#include "GeneFile.h"
-#include "Gene.h"
-#include "Humain.h"
+#include "Genome.hpp"
+#include "Individual.hpp"
+#include "Timer.hpp"
+#include "Gene.hpp"
+#include "Population.hpp"
 
-#define NBRHUMAINS 50000
+#include <cstdio>
+#include <cstdlib>
 
+static const char GENOME_FILE_PATH[] = "genes.json";
+static const char OUTPUT_FILE_PATH[] = "population.json";
+static const uint64_t POPULATION_SIZE = 50000;
 
-void generatePopulation(unsigned long long int taille, Humain* tab, TypeGene* genome, unsigned long long int nombreGenes) {
-	int i,j,n;
-
-	printf("GENERATION de %llu HUMAINS ALEATOIRES.\n", taille);
-	tab = (Humain*) malloc(sizeof(Humain) * taille);
-	//
-
-	for(i=0; i < NBRHUMAINS; i++) {
-		printf("Création humain n°%d\n", i+1);
-		for(j=0; j<nombreGenes; j++) { //Pour chaque emplacement de gènes
-			tab[i].genes[j].setType(genome[j].type);
-			n = rand() % genome[j].taille();
-			tab[i].genes[j].setAlleleL(genome[j].getNumber(n));
-			n = rand() % genome[j].taille();
-			tab[i].genes[j].setAlleleR(genome[j].getNumber(n));
-			tab[i].genes[j].sortAlleles();
-			tab[i].printGene(j);
-		}
+int main(int argc, char **argv){
+	srand((unsigned int) time(nullptr));
+	
+	Timer timer;
+	Population population;
+	
+	// 1. Load the genome
+	std::printf("Loading genome from '%s'...\n", GENOME_FILE_PATH);
+	timer.start();
+	
+	if( ! population.loadGenomeFromFile(GENOME_FILE_PATH) ){
+		std::fprintf(stderr, "Failed to load genome from '%s' :(\n", GENOME_FILE_PATH);
+		return EXIT_FAILURE;
 	}
-}
-
-int main () {
-	time_t t_start, t_end; //pour stocker le temps
-	GeneFile fichierGene; //classe qui sert à traiter le fichier JSON des gènes
-	TypeGene* genome; //contient l'intégralité des gènes possibles (uniformes)
-	Humain* pop; //contenant la population initiale
-
-	int i,j,n; //variables de parcours
-	char path[] = "genes.json"; //path vers le fichier des gènes
-
-	//On initialise le timer pour pouvoir obtenir la durée de traitement
-	printf("Démarrage du timer\n");
-	time(&t_start);
-
-	//On utilise srand() pour les futurs nombres aléatoires
-	srand(time(NULL));
-
-	printf("On commence par lire la liste de gènes...\n");
-
-	//On traite le fichier de genes
-	fichierGene.open(path);
-	fichierGene.read();
-	fichierGene.parse();
-	fichierGene.giveGeneList();
-
-	//création des variables et tableaux utiles
-	const unsigned long int nombreGenes = fichierGene.getNumberOfGenes();
-	genome = (TypeGene*) malloc(sizeof(TypeGene) * nombreGenes);
-
-	//Remplissage du génome
-	for(i=0; i < nombreGenes; i++) {
-		genome[i] = fichierGene.getTypeGene(i);
-		genome[i].printTypeGene();
-	}
-
-	generatePopulation(NBRHUMAINS, pop, genome, nombreGenes);
-	time(&t_end);
-	double duree = difftime(t_end, t_start);
-	printf("Durée : %f secondes\n", duree);
-
+	
+	std::printf("> Loaded %lu genes from '%s' in %fs\n",
+				population.genome().geneCount(), 
+				GENOME_FILE_PATH,
+				timer.currentTime());
+	
+	// 2. Generate the population
+	std::printf("Generating %llu random individuals...\n", 
+				POPULATION_SIZE);
+	
+	timer.start();
+	population.generateRandom(POPULATION_SIZE);
+	
+	std::printf("> Generated %lu individuals in %fs\n", 
+				population.size(), timer.currentTime());
+	
+	float malePercent, femalePercent;
+	population.genderProportions(malePercent, femalePercent);
+	std::printf("> Gender proportions: male:%.2f%% female: %.2f%%\n",
+				malePercent * 100.0f, femalePercent * 100.0f);
+	
+	// 3. Write that population to a file
+	std::printf("Writing %lu individuals to '%s'\n", 
+				population.size(), OUTPUT_FILE_PATH);
+	
+	timer.start();
+	population.writeIndividualsToFile(OUTPUT_FILE_PATH);
+	
+	std::printf("> Wrote %lu individuals in %fs\n",
+				population.size(), timer.currentTime());
+	
 	return 0;
 }
+
