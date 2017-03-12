@@ -1,58 +1,45 @@
-![https://ci.appveyor.com/api/projects/status/32r7s2skrgm9ubva?svg=true](https://ci.appveyor.com/api/projects/status/32r7s2skrgm9ubva?svg=true) ![https://img.shields.io/badge/version-alpha-orange.svg](https://img.shields.io/badge/version-alpha-orange.svg)
+Universe Simulation
+===================
 
-# Universe Simulator
+This is a fork of [UniverseSimulation by snwfdhmp](https://github.com/snwfdhmp/UniverseSimulation).
 
-- [Présentation](#presentation)
-  - [Principe](#principe)
-  - [Objectif](#objectif)
-- [Dernières nouveautées](#logs)
-- [Infos supplémentaires](#infosup)
-  - [Observations](#observations)
-- [Remerciements](#thanks)
-  - [Librairies](#libs)
+## Current status
+- Loading the set of genes and possible alleles from a JSON file works
+- Generating a random population of arbitrary size works
+- Writing the generated population to a file works
 
-<h2 id="presentation">Présentation</h2>
-<h3 id="principe">Principe</h3>
-Le principe de ce programme est de recréer le principe d'évolution au niveau microscopique par rapport au temps (à échelle humaine) et de voir de quelle manière les hommes sont ammenés à évoluer en utilisant les principes de fécondation et de brassage chromosomiques.
+## Known problems
+- The representation of genes is not optimal. Each gene in each individual
+  repeats the name and ID of the gene. A better solution would be to have
+  each gene reference its type from the genome and store its alleles only. That
+  will be more and more useful as we add metadata to the various genes and
+  alleles to more accurately model the real world.
+- Individuals don't have identity. The only way to differentiate individuals
+  at the moment is by their pointer, since 2 genetically identical individuals
+  is possible. A possible solution would be to use their index in the population
+  array as an unique identifier.
+- Similarly, the representation of the parent-child relationship uses pointers
+  to the individual in the population array, which will change as soon as that
+  array is resized to accomodate more individuals. One solution would be to use
+  an identifier system, which would still work when adding a significant number
+  of individuals.
+- The current representation of genetical dominance is to attribute a weight to
+  each allele. Real genetics have more complex relationships where dominance is
+  determined by which 2 genes are opposed. This should be represented.
+- The current model only uses [dominance](https://en.wikipedia.org/wiki/Dominance_(genetics)) 
+  to determine allele expression. [Epistasis](https://en.wikipedia.org/wiki/Epistasis) 
+  is not taken into account.
+- Representing the population as JSON creates several problems, most notably
+  file size (in the case of large populations) and the absence of a native
+  referencing mechanism. A custom, binary format would be a better alternative,
+  but the data wouldn't be human-readable anymore.
 
-Ce programme fait parti du projet "Universe Simulation", qui vise à pouvoir recréer une petite portion de notre monde actuel sous forme de simulation.
+## To do
+- Specify and implement a binary format that allows for storage of genome and
+  population information. Goals are time efficiency of loading and saving, and
+  optimal disk-space usage.
+- Implement a more advanced, CMake-based build-system.
+- Implement and automate unit testing of the code.
+- Create graphical tools to help control the simulation and analyze its results.
+- Expand the model so that the simulation is more accurate.
 
-Pour voir ce que fait le programme de manière concrète, vous pouvez jeter un oeil au [fichier de logs](https://raw.githubusercontent.com/snwfdhmp/UniverseSimulation/master/log.out) qui est une version écourtée des informations affichées par le programme lorsqu'il est éxécuté.
-<h3 id="objectif">Objectif</h3>
-A terme, et dans une optique où les objectifs seraient atteints, ce programme pourrait permettre de visualiser certaines possibilités d'évolution de notre société dans le futur avec précision.
-
-
-<h2 id="logs">Logs des changements</h2>
-
-<h3> Le 27/12/16 : </h3>
-- Le travail sur l'automatisation de l'ajout de gènes est terminé. Il reste quelques bugs à régler, notamment un gène qui apparait sur l'humain n°5 gène n°1 et n°3 (toujours 32767 et 490786309 -> valeurs incorrectes).
-- Bug des valeurs incorrectes réglé.
-- Un nouveau bug a été détecté : le nombre maximum d'humains qu'on peut générer est 40296 (sinon segfault. Nombre trouvé en faisant une simple recherche dichotomique)
-- Structure du projet changée (minor changes)
-- Projet nettoyé et système de fichier refait
-- Bug "maximum d'humains" résolu en changeant l'allocation statique du tableau d'humains en une allocation dynamique.
-
-<h3> IMPORTANT</h3>
-Un [fichier log.out](https://raw.githubusercontent.com/snwfdhmp/UniverseSimulation/master/log.out) a été ajouté qui contient les logs d'une session minimalisée (pour que le fichier soit plus léger à uploader) (par exemple le nombre d'humains à générer a été réduit de 90%)
-
-<h3> Du 21 au 27/12/16 : </h3>
-Travail sur l'automatisation de l'ajout des gènes. La vitesse de génération est actuellement satisfaisante (Entre 15 et 25 millions par seconde).
-
-Le but d'ajouter l'automatisation des gènes à travers l'utilisation d'un JSON est de pouvoir aggrandir la génération à d'autres gènes que le sexe, et donc commencer à étudier l'évolution de populations selon plusieurs caractères.
-
-<h3> Le 19/12/16 : </h3>
-- La précision est actuellement de 75. L'objectif du jour sera de la rapprocher de 50 au maximum et d'accélérer la génération des humains.
-- Génération de environ 50M d'humains en 5 secondes (5* paris) (génération 40)
-- Génération de 6MM (milliards) en 350 sec (génération 50) (précision 50.00088~ (plus c'est proche de 50, mieux c'est)
-- Génération de 87MM en 5570 sec (43845550478f; 43847180493h) précision (49.99907~)
-
-<h1 id="infosup">Infos supplémentaires</h1>
-<h3 id="observations">Observations :</h3>
- - [conditions] S'il n'y a pas de restriction concernant le choix des individus
- 	lors d'une reproduction (pas de limitation au couple ou de protection des couples), alors
- 	le nombre d'hommes a une importance fortement négligeable si le but est d'assurer
- 	une expansion de la population mondiale sur une longue période.
-
-<h1 id="thanks">Remerciements</h1>
-<h3 id="libs">Librairies utilisées :</h3>
-- jansson (décodage du JSON des gènes)
