@@ -35,4 +35,7 @@
 *.out
 *.app
 
+universe
+population.json
+
 # End of https://www.gitignore.io/api/c++
