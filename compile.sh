@@ -1,1 +1,0 @@
-g++ main.cpp Gene.cpp Humain.cpp Structures.cpp GeneFile.cpp -ljansson -o uni
